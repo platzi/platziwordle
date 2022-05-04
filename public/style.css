@@ -1,0 +1,118 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap");
+
+:root {
+  --gray: #7d7d7d;
+  --blue-dark: #0b1120;
+  --blue-light: #273b47;
+  --green: #85b336;
+  --yellow: #f8cc32;
+  --green-transparent-dark: rgba(133, 179, 54, 0.15);
+  --green-transparent-light: rgba(133, 179, 54, 0.25);
+  --inter-font: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--blue-dark);
+  font-family: var(--inter-font);
+}
+
+.web-title {
+  text-align: center;
+  color: white;
+}
+
+.letters-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.letter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  border: 0.1rem solid white;
+  opacity: 25%;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  font-size: 2rem;
+  height: 2.6rem;
+  width: 2.6rem;
+  padding: 0.5rem;
+  margin: 2.5px;
+  color: white;
+}
+
+.filled-letter {
+  opacity: 100%;
+  animation: 150ms ease-out 0s scaleLetter;
+}
+
+.letter-grey {
+  background-color: var(--blue-light);
+  border: 0.1rem solid var(--blue-light);
+}
+
+.letter-green {
+  background-color: var(--green);
+  border: 0.1rem solid var(--green);
+}
+
+.letter-yellow {
+  background-color: var(--yellow);
+  border: 0.1rem solid var(--yellow);
+}
+
+.message-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  font-size: 1.3rem;
+}
+
+.letter-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-text {
+  color: white;
+}
+
+.restart-container {
+  display: flex;
+  justify-content: center;
+  align-self: start;
+}
+
+.restart-button {
+  cursor: pointer;
+  background-color: var(--green);
+  border-radius: 10px;
+  font-size: 1.4rem;
+  padding: 0.5rem 2rem;
+  font-family: var(--inter-font);
+  border: 0;
+  transition: box-shadow 300ms ease;
+  box-shadow: 0px 0px 20px 5px var(--green-transparent-dark);
+}
+
+.restart-button:hover {
+  box-shadow: 0px 0px 20px 5px var(--green-transparent-light);
+}
+
+.restart-button:disabled {
+  cursor: default;
+  background-color: var(--blue-dark);
+  color: var(--gray);
+  border: 1px solid var(--gray);
+  box-shadow: none;
+}
+
+@keyframes scaleLetter {
+  50% {
+    transform: scale(1.1);
+  }
+}
