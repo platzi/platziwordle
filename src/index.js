@@ -1,14 +1,14 @@
 /**
- * Aplicación de Subject en PlatziWordle:
- * Subject nos ayuda a generar un observable donde podemos insertar valores fuera del observable.
- * En PlatziWordle nos ayudará para alertar cuando el usuario ha ganado o ha perdido.
- * En esta clase, creamos el mecanismo para alertar cuando el usuario ha ganado.
+ * Finalizando algunos detalles del proyecto PlatziWordle.
+ * En esta clase generamos el mecanismo que permite verificar la posición de las letras.
+ * También insertar nuevas letras a través de las filas de PlatziWordle.
  */
 
 import { fromEvent, Subject } from "rxjs";
 import WORDS_LIST from "./wordsList.json";
 
 const letterRows = document.getElementsByClassName("letter-row");
+const messageText = document.getElementById("message-text");
 const onKeyDown$ = fromEvent(document, "keydown");
 let letterIndex = 0;
 let letterRowIndex = 0;
@@ -37,22 +37,71 @@ const insertLetter = {
 const checkWord = {
   next: (event) => {
     if (event.key === "Enter") {
-      // Si la respuesta del usuario es igual a la palabra correcta:
+      if (userAnswer.length !== 5) {
+        messageText.textContent = "¡Te faltan algunas letras!";
+        return; // <- Este return nos permite parar la ejecución del observable
+      }
+
+      // También podemos cambiar el ciclo for/forEach/while en lugar de `userAnswer.map()`
+      // 😊 Iteramos sobre las letras en índices `[0, 1, 2, 3, 4]`:
+      userAnswer.map((_, i) => {
+        let letterColor = "";
+        let letterBox = letterRows[letterRowIndex].children[i];
+
+        // 🔍 Verificamos si la posición de la letra del usuario coincide con la posición correcta
+        // Si la letra no se encuentra, indexOf() devolverá -1 (ver línea 58)
+        // https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
+        let letterPosition = rightWord.indexOf(userAnswer[i]);
+
+        if (rightWord[i] === userAnswer[i]) {
+          letterColor = "letter-green"; // Pintar de verde 🟩 si coincide letra[posición]
+        } else {
+          if (letterPosition === -1) {
+            letterColor = "letter-grey"; // Pintar de gris ⬜️ si no coincide letra o posición
+          } else {
+            letterColor = "letter-yellow"; // Pintar de amarillo 🟨 si coincide letra, pero no posición
+          }
+        }
+        letterBox.classList.add(letterColor);
+      });
+
+      // 🔄 Cuando se haya completado la palabra, permite escribir en la siguiente fila:
+      if (userAnswer.length === 5) {
+        letterIndex = 0;
+        userAnswer = [];
+        letterRowIndex++;
+      }
+
+      // 💚 Ganas el juego si la respuesta del usuario coincide con la palabra correcta
       if (userAnswer.join("") === rightWord) {
-        // Emite un valor (vacío) hacia el observable `userWinOrLoose$` (ver línea 53)
         userWinOrLoose$.next();
       }
     }
   },
 };
 
+// 📝 Observador `removeLetter` (o `deleteLetter`) que nos ayuda a borrar la última letra
+const removeLetter = {
+  next: (event) => {
+    const pressedKey = event.key;
+    // Verificamos si es la tecla Backspace y que no estamos en la primera posición [0]
+    if (pressedKey === "Backspace" && letterIndex !== 0) {
+      let letterBox =
+        letterRows[letterRowIndex].children[userAnswer.length - 1];
+      letterBox.textContent = "";
+      letterBox.classList = "letter";
+      letterIndex--;
+      userAnswer.pop();
+    }
+  },
+};
+
 onKeyDown$.subscribe(insertLetter);
 onKeyDown$.subscribe(checkWord);
+onKeyDown$.subscribe(removeLetter);
 
-// Cuando se emite un valor vacío, se ejecuta el siguiente observador:
 userWinOrLoose$.subscribe(() => {
   let letterRowsWinned = letterRows[letterRowIndex];
-  // Lo siguiente nos permite pintar los contenedores de las letras con color verde 🟩 🟩 🟩 🟩 🟩
   for (let i = 0; i < 5; i++) {
     letterRowsWinned.children[i].classList.add("letter-green");
   }
