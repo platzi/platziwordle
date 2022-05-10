@@ -1,10 +1,11 @@
 /**
- * Finalizando algunos detalles del proyecto PlatziWordle.
- * En esta clase generamos el mecanismo que permite verificar la posición de las letras.
- * También insertar nuevas letras a través de las filas de PlatziWordle.
+ * Simplificando código JavaScript a través de funciones como map y filter.
+ * En esta clase aplicamos los operadores map y filter para reemplazar algunas líneas de código.
+ * También se han convertido insertLetter, removeLetter (deleteLetter) y checkWord a observables.
  */
 
 import { fromEvent, Subject } from "rxjs";
+import { map, filter } from "rxjs/operators";
 import WORDS_LIST from "./wordsList.json";
 
 const letterRows = document.getElementsByClassName("letter-row");
@@ -20,85 +21,98 @@ console.log(`Right word: ${rightWord}`);
 
 const userWinOrLoose$ = new Subject();
 
+// Ahora el observable insertLetter$ se encarga de convertir una letra a mayúscula,
+// y luego a comprobar si cumple con una serie de condiciones (línea 30).
+const insertLetter$ = onKeyDown$.pipe(
+  map((event) => event.key.toUpperCase()),
+  filter(
+    (pressedKey) =>
+      pressedKey.length === 1 && pressedKey.match(/[a-z]/i) && letterIndex < 5
+  )
+);
+
+// Nuestro observador insertLetter ahora sólo se ocupa de agregar una letra a través de next (letter)
 const insertLetter = {
-  next: (event) => {
-    const pressedKey = event.key.toUpperCase();
-    if (pressedKey.length === 1 && pressedKey.match(/[a-z]/i)) {
-      let letterBox =
-        Array.from(letterRows)[letterRowIndex].children[letterIndex];
-      letterBox.textContent = pressedKey;
-      letterBox.classList.add("filled-letter");
-      letterIndex++;
-      userAnswer.push(pressedKey);
-    }
+  next: (letter) => {
+    let letterBox =
+      Array.from(letterRows)[letterRowIndex].children[letterIndex];
+    letterBox.textContent = letter;
+    letterBox.classList.add("filled-letter");
+    letterIndex++;
+    userAnswer.push(letter);
   },
 };
 
+// Ahora el observable checkWord$ se encargará de verificar si es momento de revisar una palabra
+// Primero comprobando que se presiona `Enter`, y luego verificando que hayamos completado la palabra
+// antes de proceder a verificarla. 🔍
+const checkWord$ = onKeyDown$.pipe(
+  map((event) => event.key),
+  filter((key) => key === "Enter" && letterIndex === 5 && letterRowIndex <= 5)
+);
+
+// El observador checkWord se encarga directamente de verificar la palabra
 const checkWord = {
-  next: (event) => {
-    if (event.key === "Enter") {
-      if (userAnswer.length !== 5) {
-        messageText.textContent = "¡Te faltan algunas letras!";
-        return; // <- Este return nos permite parar la ejecución del observable
-      }
+  next: () => {
+    if (userAnswer.length !== 5) {
+      messageText.textContent = "¡Te faltan algunas letras!";
+      return;
+    }
 
-      // También podemos cambiar el ciclo for/forEach/while en lugar de `userAnswer.map()`
-      // 😊 Iteramos sobre las letras en índices `[0, 1, 2, 3, 4]`:
-      userAnswer.map((_, i) => {
-        let letterColor = "";
-        let letterBox = letterRows[letterRowIndex].children[i];
+    // También podemos cambiar el ciclo for/forEach/while en lugar de `userAnswer.map()`
+    // Iteramos sobre las letras en índices `[0, 1, 2, 3, 4]`:
+    userAnswer.map((_, i) => {
+      let letterColor = "";
+      let letterBox = letterRows[letterRowIndex].children[i];
 
-        // 🔍 Verificamos si la posición de la letra del usuario coincide con la posición correcta
-        // Si la letra no se encuentra, indexOf() devolverá -1 (ver línea 58)
-        // https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-        let letterPosition = rightWord.indexOf(userAnswer[i]);
+      let letterPosition = rightWord.indexOf(userAnswer[i]);
 
-        if (rightWord[i] === userAnswer[i]) {
-          letterColor = "letter-green"; // Pintar de verde 🟩 si coincide letra[posición]
+      if (rightWord[i] === userAnswer[i]) {
+        letterColor = "letter-green";
+      } else {
+        if (letterPosition === -1) {
+          letterColor = "letter-grey";
         } else {
-          if (letterPosition === -1) {
-            letterColor = "letter-grey"; // Pintar de gris ⬜️ si no coincide letra o posición
-          } else {
-            letterColor = "letter-yellow"; // Pintar de amarillo 🟨 si coincide letra, pero no posición
-          }
+          letterColor = "letter-yellow";
         }
-        letterBox.classList.add(letterColor);
-      });
-
-      // 🔄 Cuando se haya completado la palabra, permite escribir en la siguiente fila:
-      if (userAnswer.length === 5) {
-        letterIndex = 0;
-        userAnswer = [];
-        letterRowIndex++;
       }
+      letterBox.classList.add(letterColor);
+    });
 
-      // 💚 Ganas el juego si la respuesta del usuario coincide con la palabra correcta
-      if (userAnswer.join("") === rightWord) {
-        userWinOrLoose$.next();
-      }
+    if (userAnswer.length === 5) {
+      letterIndex = 0;
+      userAnswer = [];
+      letterRowIndex++;
+    }
+
+    if (userAnswer.join("") === rightWord) {
+      userWinOrLoose$.next();
     }
   },
 };
 
-// 📝 Observador `removeLetter` (o `deleteLetter`) que nos ayuda a borrar la última letra
+// El observable removeLetter$ se encarga de verificar que se oprimió la tecla correcta
+// y que hayamos escrito al menos una letra (línea 98).
+const removeLetter$ = onKeyDown$.pipe(
+  map((event) => event.key),
+  filter((key) => key === "Backspace" && letterIndex !== 0)
+);
+
+// El observador removeLetter sólo remueve la última palabra.
 const removeLetter = {
-  next: (event) => {
-    const pressedKey = event.key;
-    // Verificamos si es la tecla Backspace y que no estamos en la primera posición [0]
-    if (pressedKey === "Backspace" && letterIndex !== 0) {
-      let letterBox =
-        letterRows[letterRowIndex].children[userAnswer.length - 1];
-      letterBox.textContent = "";
-      letterBox.classList = "letter";
-      letterIndex--;
-      userAnswer.pop();
-    }
+  next: () => {
+    let letterBox = letterRows[letterRowIndex].children[userAnswer.length - 1];
+    letterBox.textContent = "";
+    letterBox.classList = "letter";
+    letterIndex--;
+    userAnswer.pop();
   },
 };
 
-onKeyDown$.subscribe(insertLetter);
-onKeyDown$.subscribe(checkWord);
-onKeyDown$.subscribe(removeLetter);
+// Finalmente suscribimos los observadores con los observables 🎉
+insertLetter$.subscribe(insertLetter);
+checkWord$.subscribe(checkWord);
+removeLetter$.subscribe(removeLetter);
 
 userWinOrLoose$.subscribe(() => {
   let letterRowsWinned = letterRows[letterRowIndex];
