@@ -1,13 +1,15 @@
 /**
- * Simplificando código JavaScript a través de funciones como map y filter.
- * En esta clase aplicamos los operadores map y filter para reemplazar algunas líneas de código.
- * También se han convertido insertLetter, removeLetter (deleteLetter) y checkWord a observables.
+ * Aplicamos takeUntil para completar los observables insertLetter$, checkWord$ y removeLetter$
+ * takeUntil tomará como argumento userWinOrLoose$.
+ * Entonces cuando el usuario/a pierda o gane (se señalará userWinOrLoose$), los observables
+ * anteriores se completarán correctamente.
  */
 
 import { fromEvent, Subject } from "rxjs";
-import { map, filter } from "rxjs/operators";
+import { map, filter, takeUntil } from "rxjs/operators";
 import WORDS_LIST from "./wordsList.json";
 
+const restartButton = document.getElementById("restart-button");
 const letterRows = document.getElementsByClassName("letter-row");
 const messageText = document.getElementById("message-text");
 const onKeyDown$ = fromEvent(document, "keydown");
@@ -21,8 +23,6 @@ console.log(`Right word: ${rightWord}`);
 
 const userWinOrLoose$ = new Subject();
 
-// Ahora el observable insertLetter$ se encarga de convertir una letra a mayúscula,
-// y luego a comprobar si cumple con una serie de condiciones (línea 30).
 const insertLetter$ = onKeyDown$.pipe(
   map((event) => event.key.toUpperCase()),
   filter(
@@ -31,7 +31,6 @@ const insertLetter$ = onKeyDown$.pipe(
   )
 );
 
-// Nuestro observador insertLetter ahora sólo se ocupa de agregar una letra a través de next (letter)
 const insertLetter = {
   next: (letter) => {
     let letterBox =
@@ -43,15 +42,11 @@ const insertLetter = {
   },
 };
 
-// Ahora el observable checkWord$ se encargará de verificar si es momento de revisar una palabra
-// Primero comprobando que se presiona `Enter`, y luego verificando que hayamos completado la palabra
-// antes de proceder a verificarla. 🔍
 const checkWord$ = onKeyDown$.pipe(
   map((event) => event.key),
   filter((key) => key === "Enter" && letterIndex === 5 && letterRowIndex <= 5)
 );
 
-// El observador checkWord se encarga directamente de verificar la palabra
 const checkWord = {
   next: () => {
     if (userAnswer.length !== 5) {
@@ -79,26 +74,35 @@ const checkWord = {
       letterBox.classList.add(letterColor);
     });
 
-    if (userAnswer.length === 5) {
-      letterIndex = 0;
-      userAnswer = [];
-      letterRowIndex++;
-    }
+    // if (userAnswer.length === 5) {
+    //   letterIndex = 0;
+    //   userAnswer = [];
+    //   letterRowIndex++;
+    // }
 
     if (userAnswer.join("") === rightWord) {
+      messageText.textContent = `😊 ¡Sí! La palabra ${rightWord.toUpperCase()} es la correcta`;
       userWinOrLoose$.next();
+      restartButton.disabled = false;
+    } else {
+      letterIndex = 0;
+      letterRowIndex++;
+      userAnswer = [];
+
+      if (letterRowIndex === 6) {
+        messageText.textContent = `😔 Perdiste. La palabra correcta era: "${rightWord.toUpperCase()}"`;
+        userWinOrLoose$.next();
+        restartButton.disabled = false;
+      }
     }
   },
 };
 
-// El observable removeLetter$ se encarga de verificar que se oprimió la tecla correcta
-// y que hayamos escrito al menos una letra (línea 98).
 const removeLetter$ = onKeyDown$.pipe(
   map((event) => event.key),
   filter((key) => key === "Backspace" && letterIndex !== 0)
 );
 
-// El observador removeLetter sólo remueve la última palabra.
 const removeLetter = {
   next: () => {
     let letterBox = letterRows[letterRowIndex].children[userAnswer.length - 1];
@@ -109,14 +113,16 @@ const removeLetter = {
   },
 };
 
-// Finalmente suscribimos los observadores con los observables 🎉
-insertLetter$.subscribe(insertLetter);
-checkWord$.subscribe(checkWord);
-removeLetter$.subscribe(removeLetter);
-
 userWinOrLoose$.subscribe(() => {
   let letterRowsWinned = letterRows[letterRowIndex];
   for (let i = 0; i < 5; i++) {
     letterRowsWinned.children[i].classList.add("letter-green");
   }
 });
+
+// Ahora suscribimos los observables, pero antes los encadenamos con takeUntil(userWinOrLoose$):
+// ✅ De esa forma, cuando se ejecuta userWinOrLoose$.next() (ver línea 85, línea 94), se completarán
+// los observables devueltos por insertLetter$, checkWord$, removeLetter$.
+insertLetter$.pipe(takeUntil(userWinOrLoose$)).subscribe(insertLetter);
+checkWord$.pipe(takeUntil(userWinOrLoose$)).subscribe(checkWord);
+removeLetter$.pipe(takeUntil(userWinOrLoose$)).subscribe(removeLetter);
