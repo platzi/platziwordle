@@ -55,12 +55,13 @@ Y los estilos `.css`:
 ```
 
 ## Ramas disponibles del curso
+> 💻 Si estás estancado/a en el desarollo del proyecto también puedes utilizar el sistema de preguntas del curso. 😊 O también puedes revisar las ramas de las clases del curso.
 
-| **Clase**                       | **Rama**                      | **Cambio realizado**                                 |
-| ------------------------------- | ----------------------------- | ---------------------------------------------------- |
-| fromEvent en PlatziWordle       | `9-fromEvent-PlatziWordle`    | Implementamos observables con fromEvent              |
-| Subject en PlatziWordle         | `11-Subject-PlatziWordle`     | Implementamos Subject en fromEvent                   |
-| Finalizando PlatziWordle        | `14-Finalizando-PlatziWordle` | Realizamos algunos detalles en PlatziWordle          |
-| map y filter en PlatziWordle    | `17-map-filter-PlatziWordle`  | Reemplazamos código vanilla con map y filter         |
-| takeUntil en PlatziWordle       | `23-takeUntil-PlatziWordle`   | Empleamos takeUntil                                  |
-| Opción de reinicio PlatziWordle | `28-reinicio-PlatziWordle`    | Habilitamos la opción para reiniciar en PlatziWordle |
+| **Clase**                                                       | **Rama**                      | **Cambio realizado**                                 |
+| --------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------- |
+| Aplicación de fromEvent en PlatziWordle                         | `9-fromEvent-PlatziWordle`    | Implementamos observables con fromEvent              |
+| Aplicación de Subject en PlatziWordle                           | `11-Subject-PlatziWordle`     | Implementamos Subject en fromEvent                   |
+| Finalizando el proyecto PlatziWordle                            | `14-Finalizando-PlatziWordle` | Realizamos algunos detalles en PlatziWordle          |
+| Operadores: map, reduce y filter (map y filter en PlatziWordle) | `17-map-filter-PlatziWordle`  | Reemplazamos código vanilla con map y filter         |
+| Operadores: takeUntil (takeUntil en PlatziWordle)               | `23-takeUntil-PlatziWordle`   | Empleamos takeUntil                                  |
+| PlatziWordle con opción de reinicio                             | `28-reinicio-PlatziWordle`    | Habilitamos la opción para reiniciar en PlatziWordle |
